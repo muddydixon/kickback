@@ -7,20 +7,21 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"path"
 	"reflect"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/Sirupsen/logrus"
-	// "github.com/go-errors/errors"
+	"github.com/gin-gonic/contrib/ginrus"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v2"
 )
 
-
-type Tasks struct {
-	tasks []Task
+type Config struct {
+	Tasks []Task
+	Log   map[string]string
+	Port  int32
 }
 
 type Task struct {
@@ -30,8 +31,8 @@ type Task struct {
 	Procs  []string
 }
 
-var taskFile *string
-var logger *logrus.Logger
+var accessLogger *logrus.Logger
+var systemLogger *logrus.Logger
 
 func addTask(r *gin.Engine, task Task) {
 	method := strings.ToUpper(task.Method)
@@ -83,8 +84,8 @@ func execProcsGen(procs []string) gin.HandlerFunc {
 			cmd.Stdout = &out
 			err = cmd.Run()
 			if err != nil {
-				logrus.WithFields(logrus.Fields{
-					"method": "method",
+				systemLogger.WithFields(logrus.Fields{
+					"api": "execProcs",
 				}).Info("some error")
 			}
 			outs = append(outs, out.String())
@@ -93,42 +94,68 @@ func execProcsGen(procs []string) gin.HandlerFunc {
 	}
 }
 
-func readTaskFile() []Task {
-	p := path.Join(".", *taskFile)
-	data, err := ioutil.ReadFile(p)
+func readConfig(confFile string) Config {
+	data, err := ioutil.ReadFile(confFile)
 	if err != nil {
-		err := ioutil.WriteFile(p, []byte("# kickback tasks"), os.ModePerm)
+		err := ioutil.WriteFile(confFile, []byte("# kickback tasks"), os.ModePerm)
 		if err != nil {
-			panic("cannot open task file: " + p)
+			panic("cannot open task file: " + confFile)
 		}
 	}
-	tasks := []Task{}
-	err = yaml.Unmarshal(data, &tasks)
+	config := Config{}
+	err = yaml.Unmarshal(data, &config)
 	if err != nil {
 		panic("invalid task yml")
 	}
-	return tasks
+	return config
+}
+
+func createLogger(logPath string) *logrus.Logger {
+	var err error
+	logger := logrus.New()
+	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		panic(err)
+	}
+	logger.Formatter = &logrus.TextFormatter{FullTimestamp: true, DisableColors: false}
+	logger.Out = logFile
+
+	return logger
 }
 
 func main() {
-	logger = logrus.New()
-
-	taskFile = flag.String("taskfile", ".kickback.yml", "taskfile path")
+	port := flag.Int("port", 9201, "start port")
+	confFile := flag.String("conf", ".kickback.yml", "config file path")
 	flag.Parse()
-	fmt.Println("taskFile: " + fmt.Sprint(*taskFile))
 
-	tasks := readTaskFile()
+	pwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	config := readConfig(fmt.Sprintf("%s/%s", pwd, *confFile))
+	err = os.Mkdir(fmt.Sprintf("%s/%s", pwd, config.Log["dir"]), 0755)
+	if err != nil {
+		if strings.Index(err.Error(), "file exists") > -1 {
+		} else {
+			panic(err)
+		}
+	}
+
+	accessLogger = createLogger(fmt.Sprintf("%s/%s/access.log", pwd, config.Log["dir"]))
+	systemLogger = createLogger(fmt.Sprintf("%s/%s/system.log", pwd, config.Log["dir"]))
 
 	r := gin.Default()
+	r.Use(ginrus.Ginrus(accessLogger, time.RFC3339, true))
 	r.GET("/api/tasks", getTasks)
 	r.POST("/api/tasks", createTask)
 	r.GET("/api/tasks/:task", getTask)
 	r.PUT("/api/tasks/:task", modifyTask)
 	r.DELETE("/api/tasks/task", deleteTask)
 
-	for _, task := range tasks {
+	for _, task := range config.Tasks {
 		addTask(r, task)
 	}
 
-	r.Run(fmt.Sprintf(":%d", 8080))
+	r.Run(fmt.Sprintf(":%d", *port))
 }

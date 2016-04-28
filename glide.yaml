@@ -5,3 +5,4 @@ import:
 - package: gopkg.in/yaml.v2
 - package: github.com/swdyh/go-enumerable
 - package: github.com/Sirupsen/logrus
+- package: github.com/gin-gonic/contrib

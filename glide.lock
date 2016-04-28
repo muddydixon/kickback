@@ -1,6 +1,8 @@
-hash: db17c37101a45c6984b32be751dad19cda627a645a5ab360397d2c79c52ca980
-updated: 2016-04-27T16:23:48.389703065+09:00
+hash: b0ff89d0a5497d21f5ef7ce3cd7a07256b35fe780062def0c3ee9503f66c99c7
+updated: 2016-04-28T11:06:18.121135189+09:00
 imports:
+- name: github.com/gin-gonic/contrib
+  version: 154ef3798e7261b0348e0a49a5a1478afe5e673c
 - name: github.com/gin-gonic/gin
   version: 542be2fe77724f800fcab7eb6c01a4e597fb8506
   subpackages:
@@ -23,7 +25,7 @@ imports:
   subpackages:
   - context
 - name: golang.org/x/sys
-  version: f64b50fbea64174967a8882830d621a18ee1548e
+  version: c8bc69bc2db9c57ccf979550bc69655df5039a8a
   subpackages:
   - unix
 - name: gopkg.in/go-playground/validator.v8

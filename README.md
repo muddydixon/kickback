@@ -12,12 +12,23 @@ Kickback - execute process by api server
 * Write settings by yml
 
 ```yml
-- name: some process
-  path: /api/some
-  method: POST
-  procs:
-    - ls {{.DIR}}
-    - ls {{.OTHER_DIR}}
+# kickback tasks
+log:
+  dir: ./log
+  level: debug
+port: 9201
+tasks:
+  - name: some process
+    path: /api/some
+    method: POST
+    procs:
+      - ls {{.DIR}}
+      - ls {{.OTHER_DIR}}
+  - name: other process
+    path: /api/other
+    method: PUT
+    procs:
+      - ls
 ```
 
 * Then start kickback
@@ -27,5 +38,5 @@ Kickback - execute process by api server
 ```
 
 ```zsh
-% curl -X POST -d DIR=/tmp -d OTHER_DIR=/home/sample http://localhost:8080/api/some
+% curl -X POST -d DIR=/tmp -d OTHER_DIR=/home/sample http://localhost:9201/api/some
 ```
