@@ -70,8 +70,10 @@ func execProcsGen(procs []string) gin.HandlerFunc {
 		bodies := strings.Split(string(x), "&")
 		data := make(map[string]string)
 		for _, body := range bodies {
-			kv := strings.Split(body, "=")
-			data[kv[0]] = kv[1]
+			if body != "" {
+				kv := strings.Split(body, "=")
+				data[kv[0]] = kv[1]
+			}
 		}
 
 		for _, proc := range procs {
