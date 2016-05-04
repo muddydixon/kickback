@@ -1,4 +1,4 @@
-Kickback - execute process by api server
+Kickback - execute process by api request
 ----
 
 ## Install
@@ -12,10 +12,9 @@ Kickback - execute process by api server
 * Write settings by yml
 
 ```yml
-# kickback tasks
+# kickback settings
 log:
   dir: ./log
-  level: debug
 port: 9201
 tasks:
   - name: some process
@@ -26,17 +25,18 @@ tasks:
       - ls {{.OTHER_DIR}}
   - name: other process
     path: /api/other
-    method: PUT
+    method: get
     procs:
-      - ls
+      - ps {{.OPT}}
 ```
 
 * Then start kickback
 
 ```zsh
-% kickback --taskfile ${taskfile}
+% kickback --conf ${config}
 ```
 
 ```zsh
-% curl -X POST -d DIR=/tmp -d OTHER_DIR=/home/sample http://localhost:9201/api/some
+% curl -X POST -d dir=/tmp -d OTHER_DIR=/home/sample http://localhost:9201/api/some
+% curl -X GET http://localhost:9201/api/other?opt=aux
 ```

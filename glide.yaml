@@ -1,8 +1,5 @@
 package: .
 import:
-- package: github.com/go-errors/errors
-- package: github.com/gin-gonic/gin
-- package: gopkg.in/yaml.v2
-- package: github.com/swdyh/go-enumerable
-- package: github.com/Sirupsen/logrus
-- package: github.com/gin-gonic/contrib
+  - package: github.com/gin-gonic/gin
+  - package: gopkg.in/yaml.v2
+  - package: github.com/Sirupsen/logrus

@@ -1,4 +1,4 @@
 all:
-	go fmt index.go
-	goimports -w index.go
-	GOOS=linux GOARCH=amd64 go build -o kickback index.go
+	go fmt kickback.go kb_log.go
+	goimports -w kickback.go kb_log.go
+	go build -o kickback kickback.go kb_log.go

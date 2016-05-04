@@ -1,2 +1,3 @@
 .kickback.yml
-vendor
+_vendor
+log
